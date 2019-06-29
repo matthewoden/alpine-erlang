@@ -1,9 +1,9 @@
-# Erlang on Alpine Linux
+# Erlang on Alpine Linux (for arm32v6)
 
-This Dockerfile provides a full installation of Erlang on Alpine, intended for running Erlang releases,
-so it has no build tools installed. The Erlang installation is provided so one can avoid cross-compiling
-releases. The caveat of course is if one has NIFs which require a native compilation toolchain, but that is
-left as an exercise for the reader.
+This Dockerfile provides a full installation of Erlang on Alpine (ARMv6 architecture), intended for running
+Erlang releases on RPi instances, so it has no build tools installed. The Erlang installation
+is provided so one can avoid cross-compiling releases. The caveat of course is if one has NIFs
+which require a native compilation toolchain, but that is left as an exercise for the reader.
 
 **NOTE:** This image is primarily intended to either be used as-is, or as the base for an image which is
 embellished with additional dependencies. It is also intended to be forked and tweaked as needed for those
@@ -20,7 +20,7 @@ To boot straight to a prompt in the image (versioning info is stripped here, but
 of what to expect):
 
 ```
-$ docker run --rm -it --user=root bitwalker/alpine-erlang erl
+$ docker run --rm -it --user=root matthewoden/alpine-arm32v6-erlang erl
 Erlang/OTP XX [erts-X.X] [source] [64-bit] [smp:4:4] [async-threads:10] [hipe] [kernel-poll:false]
 
 Eshell VX.X  (abort with ^G)
@@ -32,14 +32,16 @@ a
 
 ## Extending for your own application
 
+Building erlang for ARM with docker generally requires running ARM on the host. Docker for mac's quem emulator will fail on syscalls, as will RPi0, and RPi0w, and RPi1 devices. For device errors, see [moby/#38175](https://github.com/moby/moby/issues/38175).
+
 **NOTE:** The dependency requirements for your own application may need additional system packages installed via APK,
 or additional OTP applications from the standard library which are not built by default in order to save space. In
-the former case, you need to build your own image based on `alpine-erlang` which installs those extra packages. If
-you need additional OTP applications from the standard library, you will need to fork `alpine-erlang` and tweak the
+the former case, you need to build your own image based on `alpine-arm32v6-erlang` which installs those extra packages. If
+you need additional OTP applications from the standard library, you will need to fork `alpine-arm32v6-erlang` and tweak the
 config flags for the build so that those applications are present.
 
 ```dockerfile
-FROM bitwalker/alpine-erlang:latest
+FROM matthewoden/alpine-arm32v6-erlang:latest
 
 # Set exposed ports
 EXPOSE 5000
