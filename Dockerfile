@@ -4,11 +4,11 @@ FROM arm32v6/alpine:3.10 AS build
 # is updated with the current date. It will force refresh of all
 # of the base images and things like `apt-get update` won't be using
 # old cached versions when the Dockerfile is built.
-ENV REFRESHED_AT=2019-06-21 \
+ENV REFRESHED_AT=2019-10-05 \
   LANG=en_US.UTF-8 \
   HOME=/opt/app/ \
   TERM=xterm \
-  ERLANG_VERSION=22.0.4
+  ERLANG_VERSION=22.0.7
 
 # Add tagged repos as well as the edge repo so that we can selectively install edge packages
 RUN \
@@ -121,7 +121,6 @@ ENV LANG=en_US.UTF-8 \
   HOME=/opt/app/ \
   # Set this so that CTRL+G works properly
   TERM=xterm \
-  ERLANG_VERSION=22.0.4 \
   PATH=/usr/local/bin:${PATH}
 
 # Copy Erlang/OTP installation
@@ -144,10 +143,10 @@ RUN \
   apk add --no-cache --update \
   bash \
   ca-certificates \
-  openssl-dev \
-  ncurses-dev \
-  unixodbc-dev \
-  zlib-dev && \
+  openssl \
+  ncurses \
+  unixodbc \
+  zlib && \
   # Update ca certificates
   update-ca-certificates --fresh
 
