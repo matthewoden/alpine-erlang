@@ -1,4 +1,4 @@
-FROM arm32v6/alpine:3.10 AS build
+FROM arm32v6/alpine:3.10.2 AS build
 
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
@@ -113,7 +113,7 @@ RUN \
 
 ### Final Image
 
-FROM arm32v6/alpine:3.10
+FROM arm32v6/alpine:3.10.2
 
 LABEL maintainer="Matthew Oden Potter <heymatthewoden@gmail.com"
 
