@@ -18,7 +18,6 @@ on:
 
 env:
   DOCKER_TARGET_PLATFORM: linux/arm/v6
-  DOCKER_REGISTRY: hub.docker.com
   DOCKER_IMAGE: matthewodeb/alpine-arm32v6-erlang     
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}  
@@ -47,7 +46,7 @@ jobs:
       - name: Docker Login      
         if: success()
         run: |        
-          echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
+          echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
             
       - name: Run Buildx (push image)      
         if: success()      
