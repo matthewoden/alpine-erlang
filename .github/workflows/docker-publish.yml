@@ -17,68 +17,71 @@ on:
   pull_request:
 
 env:
-  # TODO: Change variable to your image's name.
-  IMAGE_NAME: alpine-arm32v6-erlang
-  DOCKER_TARGET_PLATFORM: linux/arm/v7  
-
+  DOCKER_TARGET_PLATFORM: linux/arm/v6
+  DOCKER_REGISTRY: hub.docker.com
+  DOCKER_IMAGE: matthewodeb/alpine-arm32v6-erlang     
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}  
 jobs:
-  # Run tests.
-  # See also https://docs.docker.com/docker-hub/builds/automated-testing/
-#   test:
-#     runs-on: ubuntu-18.04    
-
-#     steps:
-#       - uses: actions/checkout@v2
-
-#       - name: Attempt to build. TODO - Write tests to ensure erlang executes
-#         run: |
-#             docker build . --file Dockerfile
-
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
   push:
-    # Ensure test job passes before pushing image.
-    # needs: test
-
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    env:
-      DOCKER_TARGET_PLATFORM: linux/arm/v6
-
     steps:
       - uses: actions/checkout@v2
-        
+      
+      - name: Set up Docker Buildx      
+        uses: crazy-max/ghaction-docker-buildx@v1      
+        with:        
+          version: latest
+          
       - name: Prepare
         if: success()      
         id: prepare 
         run: |        
-          echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}    
-          
-      - name: Build image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
+          echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}        
+          echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}        
+          echo ::set-output name=version::${GITHUB_RUN_NUMBER}       
 
-      - name: Log into GitHub Container Registry
-      # TODO: Create a PAT with `read:packages` and `write:packages` scopes and save it as an Actions secret `CR_PAT`
-        run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Docker Login      
+        if: success()
+        run: |        
+          echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
+            
+      - name: Run Buildx (push image)      
+        if: success()      
+        run: |        
+          docker buildx build \        
+          --platform ${{ steps.prepare.outputs.docker_platform }} \             
+          --tag ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }} \        
+          --file ./Dockerfile \        
+          --output type=image,push=true .
+                       
+#       - name: Build image
+#         run: docker build . --file Dockerfile --tag $IMAGE_NAME
+#       - name: Log into GitHub Container Registry
+#       # TODO: Create a PAT with `read:packages` and `write:packages` scopes and save it as an Actions secret `CR_PAT`
+#         run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Push image to GitHub Container Registry
-        run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+#       - name: Push image to GitHub Container Registry
+#         run: |
+#           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
 
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+#           # Change all uppercase to lowercase
+#           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+#           # Strip git ref prefix from version
+#           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+#           # Strip "v" prefix from tag name
+#           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
+#           # Use Docker `latest` tag convention
+#           [ "$VERSION" == "master" ] && VERSION=latest
 
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
+#           echo IMAGE_ID=$IMAGE_ID
+#           echo VERSION=$VERSION
 
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+#           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+#           docker push $IMAGE_ID:$VERSION
