@@ -18,7 +18,7 @@ on:
 
 env:
   DOCKER_TARGET_PLATFORM: linux/arm/v6
-  DOCKER_IMAGE: matthewodeb/alpine-arm32v6-erlang
+  DOCKER_IMAGE: matthewoden/alpine-arm32v6-erlang
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 jobs:
@@ -41,7 +41,7 @@ jobs:
         id: prepare
         run: |
           echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}
-          echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}
+          echo ::set-output name=docker_image::${DOCKER_IMAGE}
           echo ::set-output name=version::${GITHUB_RUN_NUMBER}
 
       - name: Docker Login
