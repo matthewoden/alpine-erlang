@@ -18,7 +18,8 @@ on:
 
 env:
   # TODO: Change variable to your image's name.
-  IMAGE_NAME: image
+  IMAGE_NAME: alpine-arm32v6-erlang
+  DOCKER_TARGET_PLATFORM: linux/arm/v7  
 
 jobs:
   # Run tests.
