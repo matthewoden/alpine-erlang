@@ -3,7 +3,7 @@ name: Docker
 on:
   schedule:
     - cron: "0 0 1 */1 *"
-      
+
   push:
     # Publish `master` as Docker `latest` image.
     branches:
@@ -18,69 +18,43 @@ on:
 
 env:
   DOCKER_TARGET_PLATFORM: linux/arm/v6
-  DOCKER_IMAGE: matthewodeb/alpine-arm32v6-erlang     
+  DOCKER_IMAGE: matthewodeb/alpine-arm32v6-erlang
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}  
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 jobs:
-  # Push image to GitHub Packages.
-  # See also https://docs.docker.com/docker-hub/builds/
+  # Push image to Docker
   push:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Set up Docker Buildx      
-        uses: crazy-max/ghaction-docker-buildx@v1      
-        with:        
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      # Buildx lets us build for arm.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        with:
           version: latest
-          
+
       - name: Prepare
-        if: success()      
-        id: prepare 
-        run: |        
-          echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}        
-          echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}        
-          echo ::set-output name=version::${GITHUB_RUN_NUMBER}       
-
-      - name: Docker Login      
         if: success()
-        run: |        
+        id: prepare
+        run: |
+          echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}
+          echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}
+          echo ::set-output name=version::${GITHUB_RUN_NUMBER}
+
+      - name: Docker Login
+        if: success()
+        run: |
           echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
-            
-      - name: Run Buildx (push image)      
-        if: success()      
-        run: |        
-          docker buildx build \        
-          --platform ${{ steps.prepare.outputs.docker_platform }} \             
-          --tag ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }} \        
-          --file ./Dockerfile \        
+
+      - name: Run Buildx (push image)
+        if: success()
+        run: |
+          docker buildx build \
+          --platform ${{ steps.prepare.outputs.docker_platform }} \
+          --tag ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }} \
+          --tag ${{ steps.prepare.outputs.docker_image }}:latest \
+          --file ./Dockerfile \
           --output type=image,push=true .
-                       
-#       - name: Build image
-#         run: docker build . --file Dockerfile --tag $IMAGE_NAME
-#       - name: Log into GitHub Container Registry
-#       # TODO: Create a PAT with `read:packages` and `write:packages` scopes and save it as an Actions secret `CR_PAT`
-#         run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
-
-#       - name: Push image to GitHub Container Registry
-#         run: |
-#           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-
-#           # Change all uppercase to lowercase
-#           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-
-#           # Strip git ref prefix from version
-#           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-#           # Strip "v" prefix from tag name
-#           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-#           # Use Docker `latest` tag convention
-#           [ "$VERSION" == "master" ] && VERSION=latest
-
-#           echo IMAGE_ID=$IMAGE_ID
-#           echo VERSION=$VERSION
-
-#           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-#           docker push $IMAGE_ID:$VERSION
