@@ -30,6 +30,12 @@ jobs:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
+      # support more platforms
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: arm
+
       # Buildx lets us build for arm.
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
