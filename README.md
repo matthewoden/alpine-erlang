@@ -32,7 +32,7 @@ a
 
 ## Extending for your own application
 
-Building erlang for ARM with docker generally requires running ARM on the host. Docker for mac's quem emulator will fail on syscalls, as will RPi0, and RPi0w, and RPi1 devices. For device errors, see [moby/#38175](https://github.com/moby/moby/issues/38175).
+Building erlang for ARM with docker generally requires running ARM on the host. Docker for mac's emulator will fail on syscalls, as will RPi0, and RPi0w, and RPi1 devices. For device errors, see [moby/#38175](https://github.com/moby/moby/issues/38175). You can also use github actions to build an image - see .github/workflows for examples.
 
 **NOTE:** The dependency requirements for your own application may need additional system packages installed via APK,
 or additional OTP applications from the standard library which are not built by default in order to save space. In
